@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d0d0d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Darts">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Darts Scoreboard</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #0d0d0d;
+  color: #eee;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+}
+#app { width: 100%; max-width: 480px; }
+
+/* Setup screen */
+.setup {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px 10px;
+}
+.setup h1 {
+  text-align: center;
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+.setup h1 span { color: #e10600; }
+.section-label {
+  font-size: 14px;
+  color: #aaa;
+  margin-bottom: 8px;
+}
+.score-options, .legs-control {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.score-btn, .legs-btn {
+  flex: 1;
+  padding: 16px;
+  background: #1a1a1a;
+  border: 2px solid #333;
+  border-radius: 12px;
+  color: #eee;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.score-btn.active {
+  background: #1a3a1a;
+  border-color: #22c55e;
+  color: #22c55e;
+}
+.legs-control {
+  align-items: center;
+}
+.legs-display {
+  font-size: 28px;
+  font-weight: 700;
+  min-width: 60px;
+  text-align: center;
+}
+.legs-btn {
+  flex: 0 0 60px;
+  padding: 12px;
+  font-size: 24px;
+}
+.name-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.name-inputs input {
+  width: 100%;
+  padding: 14px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 10px;
+  color: #eee;
+  font-size: 16px;
+}
+.start-btn {
+  margin-top: 10px;
+  padding: 18px;
+  background: #22c55e;
+  color: #000;
+  border: none;
+  border-radius: 14px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Game screen */
+.header {
+  text-align: center;
+  font-size: 14px;
+  color: #aaa;
+  margin-bottom: 10px;
+}
+.players {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.player-panel {
+  flex: 1;
+  background: #141414;
+  border: 2px solid #2a2a2a;
+  border-radius: 14px;
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.player-panel.active {
+  border-color: #e10600;
+  box-shadow: 0 0 0 1px #e10600;
+}
+.player-name {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.legs {
+  font-size: 13px;
+  color: #aaa;
+  margin-bottom: 6px;
+}
+.legs span { color: #e10600; font-weight: 700; font-size: 18px; }
+.starting {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 2px;
+}
+.remaining {
+  font-size: 52px;
+  font-weight: 800;
+  color: #ff3333;
+  line-height: 1;
+  margin: 6px 0;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 12px rgba(255,50,50,0.4);
+}
+.history-label {
+  font-size: 11px;
+  color: #777;
+  margin: 8px 0 4px;
+}
+.history {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.history-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 4px;
+  color: #ccc;
+}
+.history-row span:first-child { color: #ff6666; font-weight: 600; }
+
+/* Keypad */
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+.key {
+  padding: 18px 8px;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 12px;
+  color: #eee;
+  font-size: 22px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+.key:active { background: #2a2a2a; }
+.key.enter { background: #166534; border-color: #22c55e; color: #fff; }
+.key.bust { background: #7f1d1d; border-color: #ef4444; }
+.key.clear { background: #1e1e1e; }
+.key.undo { background: #1e1e1e; font-size: 16px; }
+.input-display {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  color: #ff3333;
+  min-height: 36px;
+  margin-bottom: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Winner overlay */
+.winner {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.winner h2 { font-size: 32px; margin-bottom: 10px; color: #22c55e; }
+.winner p { font-size: 18px; margin-bottom: 20px; }
+.winner button {
+  padding: 14px 28px;
+  background: #22c55e;
+  color: #000;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+const state = loadState() || {
+  screen: 'setup',
+  startingScore: 501,
+  legsTarget: 5,
+  players: [
+    { name: 'Home', legs: 0, remaining: 501, history: [], visits: [] },
+    { name: 'Away', legs: 0, remaining: 501, history: [], visits: [] }
+  ],
+  active: 0,
+  input: '',
+  winner: null
+};
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('darts-scoreboard');
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem('darts-scoreboard', JSON.stringify(state));
+  } catch {}
+}
+
+function render() {
+  const app = document.getElementById('app');
+  if (state.screen === 'setup') {
+    app.innerHTML = `
+      <div class="setup">
+        <h1>🎯 <span>Darts</span> Scoreboard</h1>
+        <div>
+          <div class="section-label">Starting score</div>
+          <div class="score-options">
+            ${[301,501,1001].map(s => `
+              <button class="score-btn ${state.startingScore===s?'active':''}" data-score="${s}">${s}</button>
+            `).join('')}
+          </div>
+        </div>
+        <div>
+          <div class="section-label">Legs target (first to)</div>
+          <div class="legs-control">
+            <button class="legs-btn" id="legs-minus">−</button>
+            <div class="legs-display">${state.legsTarget}</div>
+            <button class="legs-btn" id="legs-plus">+</button>
+          </div>
+        </div>
+        <div>
+          <div class="section-label">Players (optional)</div>
+          <div class="name-inputs">
+            <input id="name-home" placeholder="Home" value="${state.players[0].name==='Home'?'':state.players[0].name}">
+            <input id="name-away" placeholder="Away" value="${state.players[1].name==='Away'?'':state.players[1].name}">
+          </div>
+        </div>
+        <button class="start-btn" id="start">START GAME</button>
+      </div>
+    `;
+    document.querySelectorAll('.score-btn').forEach(b => b.onclick = () => {
+      state.startingScore = +b.dataset.score;
+      render();
+    });
+    document.getElementById('legs-minus').onclick = () => { if (state.legsTarget > 1) state.legsTarget--; render(); };
+    document.getElementById('legs-plus').onclick = () => { if (state.legsTarget < 21) state.legsTarget++; render(); };
+    document.getElementById('start').onclick = startGame;
+  } else {
+    const p0 = state.players[0];
+    const p1 = state.players[1];
+    app.innerHTML = `
+      <div class="header">First to ${state.legsTarget} Legs • ${state.startingScore}</div>
+      <div class="players">
+        ${[0,1].map(i => {
+          const p = state.players[i];
+          const hist = p.history.slice(-5);
+          return `
+            <div class="player-panel ${state.active===i?'active':''}" data-player="${i}">
+              <div class="player-name">${p.name}</div>
+              <div class="legs">LEGS <span>${p.legs}</span></div>
+              <div class="starting">STARTING TOTAL</div>
+              <div style="font-size:18px;color:#ff6666;font-weight:700;">${state.startingScore}</div>
+              <div class="remaining">${p.remaining}</div>
+              <div class="history-label">LAST 5 VISITS (NON-ZERO)</div>
+              <div class="history">
+                ${hist.length ? hist.map(h => `<div class="history-row"><span>${h.score}</span><span>${h.remaining}</span></div>`).join('') : '<div style="color:#555">—</div>'}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+      <div class="input-display">${state.input || ' '}</div>
+      <div class="keypad">
+        ${[1,2,3,4,5,6,7,8,9].map(n => `<button class="key" data-n="${n}">${n}</button>`).join('')}
+        <button class="key" data-n="0">0</button>
+        <button class="key clear" id="clear">CLEAR</button>
+        <button class="key undo" id="undo">UNDO</button>
+        <button class="key enter" id="enter">ENTER</button>
+        <button class="key bust" id="bust">BUST</button>
+      </div>
+    `;
+    document.querySelectorAll('.player-panel').forEach(el => {
+      el.onclick = () => { state.active = +el.dataset.player; state.input = ''; saveState(); render(); };
+    });
+    document.querySelectorAll('.key[data-n]').forEach(b => b.onclick = () => appendDigit(b.dataset.n));
+    document.getElementById('clear').onclick = () => { state.input = ''; render(); };
+    document.getElementById('undo').onclick = undo;
+    document.getElementById('enter').onclick = submitScore;
+    document.getElementById('bust').onclick = () => { state.input = '0'; submitScore(); };
+    saveState();
+  }
+  if (state.winner !== null) {
+    const w = state.players[state.winner];
+    const overlay = document.createElement('div');
+    overlay.className = 'winner';
+    overlay.innerHTML = `
+      <h2>${w.name} wins!</h2>
+      <p>First to ${state.legsTarget} legs</p>
+      <button id="new-game">New Game</button>
+    `;
+    document.body.appendChild(overlay);
+    document.getElementById('new-game').onclick = () => { document.body.removeChild(overlay); resetToSetup(); };
+  }
+}
+
+function startGame() {
+  const home = document.getElementById('name-home').value.trim() || 'Home';
+  const away = document.getElementById('name-away').value.trim() || 'Away';
+  state.players = [
+    { name: home, legs: 0, remaining: state.startingScore, history: [], visits: [] },
+    { name: away, legs: 0, remaining: state.startingScore, history: [], visits: [] }
+  ];
+  state.active = 0;
+  state.input = '';
+  state.winner = null;
+  state.screen = 'game';
+  saveState();
+  render();
+}
+
+function appendDigit(d) {
+  if (state.input.length >= 3) return;
+  if (state.input === '0') state.input = d;
+  else state.input += d;
+  const val = +state.input;
+  if (val > 180) state.input = state.input.slice(0, -1);
+  render();
+}
+
+function submitScore() {
+  const score = state.input === '' ? 0 : +state.input;
+  if (score > 180) return;
+  const p = state.players[state.active];
+  const newRem = p.remaining - score;
+  // Log every visit (including 0) for future use
+  p.visits.push({ score, remaining: newRem >= 0 ? newRem : p.remaining });
+  if (score === 0 || newRem < 0) {
+    // 0 or bust: no change to remaining, no history entry
+    state.input = '';
+    state.active = 1 - state.active;
+    saveState();
+    render();
+    return;
+  }
+  if (newRem === 0) {
+    // Checkout
+    p.remaining = 0;
+    p.history.push({ score, remaining: 0 });
+    p.legs++;
+    if (p.legs >= state.legsTarget) {
+      state.winner = state.active;
+    } else {
+      // Reset both for next leg
+      state.players.forEach(pl => {
+        pl.remaining = state.startingScore;
+        pl.history = [];
+      });
+    }
+  } else {
+    p.remaining = newRem;
+    p.history.push({ score, remaining: newRem });
+  }
+  state.input = '';
+  state.active = 1 - state.active;
+  saveState();
+  render();
+}
+
+function undo() {
+  // Simple undo: reverse last non-zero action if possible
+  const prev = 1 - state.active;
+  const p = state.players[prev];
+  if (p.history.length === 0 && p.visits.length === 0) return;
+  // For simplicity, just clear input or basic reverse
+  state.input = '';
+  render();
+}
+
+function resetToSetup() {
+  state.screen = 'setup';
+  state.winner = null;
+  saveState();
+  render();
+}
+
+// Register service worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
+render();
+</script>
+</body>
+</html>
