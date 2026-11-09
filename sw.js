@@ -1,9 +1,8 @@
-const CACHE_NAME = 'darts-scoreboard-v1';
+const CACHE_NAME = 'darts-scoreboard-v2';
 const ASSETS = [
+  './',
   './index.html',
-  './manifest.json',
-  './icon-192.png',
-  './icon-512.png'
+  './manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
